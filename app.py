@@ -211,9 +211,14 @@ def health():
 def telegram_webhook():
     if request.headers.get("X-Telegram-Bot-Api-Secret-Token") != WEBHOOK_SECRET:
         abort(403)
-    update = telebot.types.Update.de_json(request.get_json(force=True))
-    bot.process_new_updates([update])
-    return "ok", 200
+
+    try:
+        update = telebot.types.Update.de_json(request.get_json(force=True))
+        bot.process_new_updates([update])
+        return "ok", 200
+    except Exception:
+        app.logger.exception("Telegram webhook processing failed")
+        return "Internal Server Error", 500
 
 def setup():
     init_db()
